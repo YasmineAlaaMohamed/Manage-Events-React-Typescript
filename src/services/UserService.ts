@@ -4,13 +4,29 @@ const client = axiosClient(false);
 
 export const UserService = {
 	login: async (email, password) => {
-		return await client.post(`/login`, {
-			email: email,
-			password: password,
-		});
+		try {
+			return await client.post(`/login`, {
+				email: email,
+				password: password,
+			});
+		} catch (error) {
+			throw error;
+		}
 	},
 
 	getInfo: async (token) => {
-		return await client.get(`/users/${token}`);
+		try {
+			return await client.get(`/users/${token}`);
+		} catch (error) {
+			throw error;
+		}
+	},
+
+	register: async (formData) => {
+		try {
+			return await client.post(`/register`, formData);
+		} catch (error) {
+			throw error;
+		}
 	},
 };

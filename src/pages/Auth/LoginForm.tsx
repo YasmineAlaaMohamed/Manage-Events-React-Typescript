@@ -36,6 +36,8 @@ export const LoginForm = () => {
 	const dispatch = useDispatch();
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
+	const [error, setError] = useState("");
+
 	const navigate = useNavigate();
 
 	useEffect(() => {
@@ -46,18 +48,22 @@ export const LoginForm = () => {
 
 	const handleSubmit = (e: React.FormEvent) => {
 		e.preventDefault();
-		UserService.login(email, password).then((res) => {
-			const token = res.data.token;
-			UserService.getInfo(res.data.token).then((res) => {
-				const userDetails: any = {
-					name: res.data.name,
-					email: res.data.email,
-					token: token,
-				};
-				dispatch(setUserData(userDetails));
-				navigate(`/events`);
+		UserService.login(email, password)
+			.then((res) => {
+				const token = res.data.token;
+				UserService.getInfo(res.data.token).then((res) => {
+					const userDetails: any = {
+						name: res.data.name,
+						email: res.data.email,
+						token: token,
+					};
+					dispatch(setUserData(userDetails));
+					navigate(`/events`);
+				});
+			})
+			.catch((err) => {
+				setError("Invalid credentials");
 			});
-		});
 	};
 
 	return (
@@ -67,6 +73,9 @@ export const LoginForm = () => {
 				<StyledTypo color='textSecondary' variant='h4'>
 					Sign In
 				</StyledTypo>
+				<Typography color='secondary' variant='h6'>
+					{error}
+				</Typography>
 				<TextField
 					label='Email'
 					value={email}

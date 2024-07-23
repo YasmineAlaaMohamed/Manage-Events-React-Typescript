@@ -4,20 +4,32 @@ const client = axiosClient(true);
 
 export const CommentService = {
 	save: async (eventId, content) => {
-		return await client.post(`/comments`, {
-			content: content,
-			eventId: eventId,
-		});
+		try {
+			return await client.post(`/comments`, {
+				content: content,
+				eventId: eventId,
+			});
+		} catch (error) {
+			throw error;
+		}
 	},
 
 	delete: async (id) => {
-		return await client.delete(`/comments/${id}`);
+		try {
+			return await client.delete(`/comments/${id}`);
+		} catch (error) {
+			throw error;
+		}
 	},
 
 	update: async (eventId, commentId, content) => {
-		return await client.put(`/comments/${commentId}`, {
-			content: content,
-			eventId: eventId,
-		});
+		try {
+			return await client.put(`/comments/${commentId}`, {
+				content: content,
+				eventId: eventId,
+			});
+		} catch (error) {
+			throw error;
+		}
 	},
 };

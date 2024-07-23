@@ -24,7 +24,6 @@ import moment from "moment";
 
 const StyledDiv = styled.div`
 	display: flex;
-	justify-content: space-between;
 	align-items: center;
 `;
 
@@ -44,8 +43,14 @@ const StyledButton = styled(Button)`
 `;
 
 export const EventList = () => {
-	const { setShowAddModal, dispatch, showCommentForm, setToaster } =
-		useContext(EventContext);
+	const {
+		setShowAddModal,
+		dispatch,
+		showCommentForm,
+		setToaster,
+		setIsDisabled,
+		setSelectedTags,
+	} = useContext(EventContext);
 	const [events, setEvents] = useState([]);
 	const [tags, setTags] = useState([]);
 	const [search, setSearch] = useState("");
@@ -86,6 +91,10 @@ export const EventList = () => {
 			const fieldData = key as keyof FormState;
 			dispatch({ type: "SET_FIELD", field: fieldData, value: value });
 		});
+		const tags = formData.tags.map((tag) => tag.name);
+
+		setIsDisabled(false);
+		setSelectedTags(tags);
 		setShowAddModal(true);
 	};
 
@@ -177,18 +186,25 @@ export const EventList = () => {
 		EventService.delete(eventId)
 			.then((res) => {
 				setEvents(events.filter((event) => event._id !== eventId));
-			})
-			.finally(() => {
-				setShowAddModal(false);
 				setToaster({
 					message: `Successfully deleted!`,
 					status: "success",
-					open: false,
+					open: true,
 				});
 				dispatchData({
 					type: "SET_FETCH_RELOAD_DATA",
 					payload: !refreshState,
 				});
+			})
+			.catch((err) => {
+				setToaster({
+					message: `Failed to delete!`,
+					status: "error",
+					open: true,
+				});
+			})
+			.finally(() => {
+				setShowAddModal(false);
 			});
 	};
 
@@ -203,43 +219,43 @@ export const EventList = () => {
 
 	return (
 		<Box padding={1}>
-			{events.length > 0 ? (
-				<>
-					<StyledFormControl>
-						<TextField
-							label='Search'
-							value={search}
-							onChange={(e) => setSearch(e.target.value)}
-						/>
-					</StyledFormControl>
-					<StyledFormControl>
-						<InputLabel id='demo-mutiple-chip-label'>Tag</InputLabel>
-						<Select
-							labelId='demo-mutiple-chip-label'
-							id='demo-mutiple-chip'
-							multiple
-							value={tagName}
-							onChange={handleChange}
-							input={<Input id='select-multiple-chip' />}
-							renderValue={(selected) => (
-								<div>
-									{(selected as string[]).map((value) => (
-										<Chip key={value} label={value} />
-									))}
-								</div>
-							)}>
-							{tags.map((tag) => (
-								<MenuItem key={tag._id} value={tag.name}>
-									{tag.name}
-								</MenuItem>
-							))}
-						</Select>
-					</StyledFormControl>
+			<>
+				<StyledFormControl>
+					<TextField
+						label='Search'
+						value={search}
+						onChange={(e) => setSearch(e.target.value)}
+					/>
+				</StyledFormControl>
+				<StyledFormControl>
+					<InputLabel id='demo-mutiple-chip-label'>Tag</InputLabel>
+					<Select
+						labelId='demo-mutiple-chip-label'
+						id='demo-mutiple-chip'
+						multiple
+						value={tagName}
+						onChange={handleChange}
+						input={<Input id='select-multiple-chip' />}
+						renderValue={(selected) => (
+							<div>
+								{(selected as string[]).map((value) => (
+									<Chip key={value} label={value} />
+								))}
+							</div>
+						)}>
+						{tags.map((tag) => (
+							<MenuItem key={tag._id} value={tag.name}>
+								{tag.name}
+							</MenuItem>
+						))}
+					</Select>
+				</StyledFormControl>
+				{events.length > 0 ? (
 					<ReusableTable data={events} columns={columns} />
-				</>
-			) : (
-				<Card>No Events Found!</Card>
-			)}
+				) : (
+					<Card>No Events Found!</Card>
+				)}
+			</>
 		</Box>
 	);
 };

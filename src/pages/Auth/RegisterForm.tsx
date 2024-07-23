@@ -3,6 +3,7 @@ import React, { useState } from "react";
 import { Button, TextField, Typography } from "@material-ui/core";
 import styled from "styled-components";
 import { useNavigate } from "react-router-dom";
+import { UserService } from "../../services/UserService";
 
 const FormContainer = styled.div`
 	display: flex;
@@ -36,7 +37,6 @@ export const RegisterForm: React.FC = () => {
 		name: "",
 		email: "",
 		password: "",
-		confirmPassword: "",
 	});
 
 	const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -46,12 +46,11 @@ export const RegisterForm: React.FC = () => {
 
 	const handleSubmit = (e: React.FormEvent) => {
 		e.preventDefault();
-		// Validation logic here
-		if (formData.password !== formData.confirmPassword) {
-			alert("Passwords do not match");
-		} else {
-			alert("Form submitted successfully");
-		}
+		UserService.register(formData)
+			.then((res) => {
+				navigate(`/login`);
+			})
+			.catch((err) => {});
 	};
 
 	return (
@@ -82,15 +81,6 @@ export const RegisterForm: React.FC = () => {
 					type='password'
 					label='Password'
 					value={formData.password}
-					onChange={handleChange}
-					required
-					fullWidth
-				/>
-				<StyledText
-					name='confirm_password'
-					type='password'
-					label='Confirm Password'
-					value={formData.confirmPassword}
 					onChange={handleChange}
 					required
 					fullWidth

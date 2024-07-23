@@ -1,6 +1,6 @@
 import React, { createContext, useState, useReducer } from "react";
 import { CommentForm, AddUpdateForm } from "./components";
-import { EventService } from "../../services/EventService";
+import { EventService, TagService } from "../../services";
 import { Toaster } from "../components";
 import { useSelector } from "react-redux";
 import { RootState } from "../../reducers";
@@ -17,7 +17,7 @@ export type FormState = {
 };
 
 type Action = { type: "SET_FIELD"; field: keyof FormState; value: string };
-
+type ActionArray = [];
 export const EventContext = createContext({
 	showCommentModal: false,
 	setShowCommentModal: (modalToShow: boolean) => {},
@@ -32,6 +32,8 @@ export const EventContext = createContext({
 		comentContent: string
 	) => {},
 	dispatch: (data: Action) => {},
+	setIsDisabled: (isDisabled: boolean) => {},
+	setSelectedTags: (data: ActionArray) => {},
 });
 
 const initialState: FormState = {
@@ -60,7 +62,7 @@ export const EventProvider = ({ children }) => {
 	const [showAddModal, setShowAddModal] = useState<boolean>(false);
 	const [loading, setLoading] = useState<boolean>(false);
 	const [validationErrors, setErrors] = useState({});
-	const [isDisabled, setEIsDisabled] = useState<boolean>(true);
+	const [isDisabled, setIsDisabled] = useState<boolean>(true);
 	const [eventId, setEventId] = useState<string>("");
 	const [commentId, setCommentId] = useState<string>("");
 	const [commentContent, setCommentContent] = useState<string>("");
@@ -101,6 +103,7 @@ export const EventProvider = ({ children }) => {
 	const validate = (newFormData, field) => {
 		let errors: any = { ...validationErrors };
 		let hasError = false;
+
 		if (!newFormData[field].trim()) {
 			errors = { ...validationErrors, [field]: `* ${field} is required.` };
 		} else {
@@ -113,45 +116,62 @@ export const EventProvider = ({ children }) => {
 			}
 		}
 
-		hasError ? setEIsDisabled(true) : setEIsDisabled(false);
+		hasError ? setIsDisabled(true) : setIsDisabled(false);
 		setErrors(errors);
 	};
 
 	const submitAddUpdateForm = () => {
 		const requestFormData = { ...formData, ...{ tags: selectedTags } };
-		if (requestFormData.id != "") {
-			EventService.update(requestFormData)
-				.then((res) => {
-					setLoading(false);
-				})
-				.finally(() => {
-					setShowAddModal(false);
-					setToaster({
-						message: `${requestFormData.title} Successfully updated!`,
-						status: "success",
-						open: true,
+		TagService.save(selectedTags).then((res) => {
+			if (requestFormData.id != "") {
+				EventService.update(requestFormData)
+					.then((res) => {
+						setLoading(false);
+						setToaster({
+							message: `${requestFormData.title} Successfully updated!`,
+							status: "success",
+							open: true,
+						});
+						dispatchData({
+							type: "SET_FETCH_RELOAD_DATA",
+							payload: !refreshState,
+						});
+					})
+					.finally(() => {
+						setShowAddModal(false);
+					})
+					.catch((err) => {
+						setToaster({
+							message: `Failed to update ${requestFormData.title}!`,
+							status: "error",
+							open: true,
+						});
 					});
-					dispatchData({
-						type: "SET_FETCH_RELOAD_DATA",
-						payload: !refreshState,
+			} else {
+				EventService.save(requestFormData)
+					.then((res) => {
+						setToaster({
+							message: `${requestFormData.title} Successfully saved!`,
+							status: "success",
+							open: true,
+						});
+						dispatchData({
+							type: "SET_FETCH_RELOAD_DATA",
+							payload: !refreshState,
+						});
+					})
+					.catch((err) => {
+						setToaster({
+							message: `Failed to save ${requestFormData.title}!`,
+							status: "error",
+							open: true,
+						});
+					})
+					.finally(() => {
+						setShowAddModal(false);
 					});
-				});
-		} else {
-			EventService.save(requestFormData)
-				.then((res) => {})
-				.finally(() => {
-					setShowAddModal(false);
-					setToaster({
-						message: `${requestFormData.title} Successfully created!`,
-						status: "success",
-						open: true,
-					});
-					dispatchData({
-						type: "SET_FETCH_RELOAD_DATA",
-						payload: !refreshState,
-					});
-				});
-		}
+			}
+		});
 	};
 
 	return (
@@ -166,12 +186,16 @@ export const EventProvider = ({ children }) => {
 				showCommentForm,
 				setLoading,
 				setToaster,
+				setIsDisabled,
+				setSelectedTags,
 			}}>
 			{showCommentModal && (
 				<CommentForm
 					eventId={eventId}
 					content={commentContent}
 					commentId={commentId}
+					dispatchData={dispatchData}
+					refreshState={refreshState}
 				/>
 			)}
 			{showAddModal && (
@@ -181,6 +205,7 @@ export const EventProvider = ({ children }) => {
 					formData={formData}
 					isDisabled={isDisabled}
 					setSelectedTags={setSelectedTags}
+					selectedTags={selectedTags}
 					loading={loading}
 				/>
 			)}

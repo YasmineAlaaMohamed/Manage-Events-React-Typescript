@@ -4,7 +4,7 @@ import { AppBar, Toolbar, Typography } from "@material-ui/core";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@material-ui/core";
 import AddIcon from "@material-ui/icons/Add";
-import { EventContext } from "../EventProvider";
+import { EventContext, FormState } from "../EventProvider";
 
 const StyledButton = styled(Button)`
 	&& {
@@ -38,11 +38,31 @@ const RightElement = styled.div`
 
 export const EventLayoutWrapper = ({ children }) => {
 	const navigate = useNavigate();
-	const { setShowAddModal } = useContext(EventContext);
+	const { setShowAddModal, dispatch, setSelectedTags } =
+		useContext(EventContext);
 
 	const logout = (e: React.FormEvent) => {
 		localStorage.removeItem("loggedUserData");
 		navigate(`/login`);
+	};
+
+	const resetFormData = () => {
+		const formInitial: FormState = {
+			id: "",
+			title: "",
+			description: "",
+			organizer: "",
+			location: "",
+			date: "",
+			time: "",
+		};
+
+		Object.keys(formInitial).forEach((key) => {
+			const value = formInitial[key];
+			const fieldData = key as keyof FormState;
+			dispatch({ type: "SET_FIELD", field: fieldData, value: value });
+		});
+		setSelectedTags([]);
 	};
 
 	return (
@@ -56,7 +76,10 @@ export const EventLayoutWrapper = ({ children }) => {
 								<StyledAddButton
 									color='default'
 									variant='contained'
-									onClick={() => setShowAddModal(true)}
+									onClick={() => {
+										setShowAddModal(true);
+										resetFormData();
+									}}
 									size='small'>
 									<AddIcon />
 								</StyledAddButton>

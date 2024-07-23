@@ -15,40 +15,40 @@ export const EventService = {
 		}
 		try {
 			return await client.get(`/events?${searchQuery}`);
-		} catch (e) {
-			console.error(e);
+		} catch (error) {
+			throw error;
 		}
 	},
 
 	get: async (id) => {
 		try {
 			return await client.get(`/events/${id}`);
-		} catch (e) {
-			console.error(e);
+		} catch (error) {
+			throw error;
 		}
 	},
 
 	delete: async (id) => {
 		try {
 			return await client.delete(`/events/${id}`);
-		} catch (e) {
-			console.error(e);
+		} catch (error) {
+			throw error;
 		}
 	},
 
 	save: async (formData) => {
 		try {
 			return await client.post(`/events`, formData);
-		} catch (e) {
-			console.error(e);
+		} catch (error) {
+			throw error;
 		}
 	},
 
 	update: async (formData) => {
 		try {
 			return await client.put(`/events/${formData.id}`, formData);
-		} catch (e) {
-			console.error(e);
+		} catch (error) {
+			throw error;
 		}
 	},
 };

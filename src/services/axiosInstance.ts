@@ -1,8 +1,6 @@
 import axios, { AxiosInstance, AxiosError, AxiosResponse } from "axios";
 
 export const axiosClient = (applyAuth = true): AxiosInstance => {
-	const locatStorgaeData = JSON.parse(localStorage.getItem("loggedUserData"));
-
 	const headers = {
 		"Content-Type": "application/json",
 	};
@@ -14,6 +12,8 @@ export const axiosClient = (applyAuth = true): AxiosInstance => {
 	});
 
 	client.interceptors.request.use((config: any) => {
+		const locatStorgaeData = JSON.parse(localStorage.getItem("loggedUserData"));
+
 		config.headers = {};
 		if (applyAuth) {
 			config.headers.Authorization = `Bearer ${locatStorgaeData?.token}`;

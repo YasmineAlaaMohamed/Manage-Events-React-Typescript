@@ -13,20 +13,59 @@ import {
 import { EventContext } from "../EventProvider";
 import { CommentService } from "../../../services/CommentService";
 
-export const CommentForm = ({ eventId, content, commentId }) => {
-	const { setShowCommentModal } = useContext(EventContext);
+export const CommentForm = ({
+	eventId,
+	content,
+	commentId,
+	dispatchData,
+	refreshState,
+}) => {
+	const { setShowCommentModal, setToaster } = useContext(EventContext);
 	const [isDidabled, setIsDisabled] = useState<boolean>(content ? false : true);
 	const [commentContent, setCommentContent] = useState<string>("");
-
 	const submitCommentForm = () => {
 		if (commentId) {
 			CommentService.update(eventId, commentId, commentContent)
-				.then((res) => {})
-				.catch((err) => console.error(err));
+				.then((res) => {
+					setShowCommentModal(false);
+					setToaster({
+						message: `Comment Successfully updated!`,
+						status: "success",
+						open: true,
+					});
+					dispatchData({
+						type: "SET_FETCH_RELOAD_DATA",
+						payload: !refreshState,
+					});
+				})
+				.catch((err) => {
+					setToaster({
+						message: `Failed to create comment!`,
+						status: "error",
+						open: true,
+					});
+				});
 		} else {
 			CommentService.save(eventId, commentContent)
-				.then((res) => {})
-				.catch((err) => console.error(err));
+				.then((res) => {
+					setShowCommentModal(false);
+					setToaster({
+						message: `Comment Successfully created!`,
+						status: "success",
+						open: true,
+					});
+					dispatchData({
+						type: "SET_FETCH_RELOAD_DATA",
+						payload: !refreshState,
+					});
+				})
+				.catch((err) => {
+					setToaster({
+						message: `Failed to create comment!`,
+						status: "error",
+						open: true,
+					});
+				});
 		}
 	};
 
@@ -45,7 +84,9 @@ export const CommentForm = ({ eventId, content, commentId }) => {
 			open={true}
 			onClose={() => setShowCommentModal(false)}
 			aria-labelledby='form-dialog-title'>
-			<DialogTitle id='form-dialog-title'>Add Comment</DialogTitle>
+			<DialogTitle id='form-dialog-title'>
+				`{commentId ? "Update Comment" : "Add Comment"}`
+			</DialogTitle>
 			<DialogContent>
 				<DialogContentText>
 					When your comment form is ready, click save to save any changes you’ve
@@ -54,9 +95,8 @@ export const CommentForm = ({ eventId, content, commentId }) => {
 				<TextField
 					autoFocus
 					margin='dense'
-					id='name'
-					label='Title'
-					type='email'
+					id='Comment'
+					label='Comment'
 					fullWidth
 					defaultValue={content}
 					onChange={(e) => validate(e.target.value)}
@@ -71,7 +111,7 @@ export const CommentForm = ({ eventId, content, commentId }) => {
 					color='primary'
 					disabled={isDidabled}
 					variant='contained'>
-					Save
+					{commentId ? "Update" : "Save"}
 				</Button>
 			</DialogActions>
 		</Dialog>

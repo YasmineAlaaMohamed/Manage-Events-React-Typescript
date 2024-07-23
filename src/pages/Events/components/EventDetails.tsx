@@ -53,16 +53,22 @@ const StyledTitleWrapper = styled.span`
 	font-weight: bold;
 `;
 
-export const EventDetails = ({ eventsDetails }) => {
+export const EventDetails = ({ dispatchData, eventsDetails, refreshState }) => {
 	const [value, setValue] = React.useState("1");
 	const { showCommentForm } = useContext(EventContext);
+	const isAdmin = true; //Todo Should read role auth user role
 
 	const handleChange = (event, newValue) => {
 		setValue(newValue);
 	};
 
 	const handleDelete = (commentId: any) => {
-		CommentService.delete(commentId).then((res) => {});
+		CommentService.delete(commentId).then((res) => {
+			dispatchData({
+				type: "SET_FETCH_RELOAD_DATA",
+				payload: !refreshState,
+			});
+		});
 	};
 	return (
 		<Card variant='outlined'>
@@ -151,15 +157,17 @@ export const EventDetails = ({ eventsDetails }) => {
 														<EditIcon />
 													</IconButton>
 
-													<IconButton
-														onClick={() => {
-															handleDelete(item._id);
-														}}
-														color='secondary'
-														aria-label='Delete'
-														component='span'>
-														<DeleteIcon />
-													</IconButton>
+													{isAdmin && (
+														<IconButton
+															onClick={() => {
+																handleDelete(item._id);
+															}}
+															color='secondary'
+															aria-label='Delete'
+															component='span'>
+															<DeleteIcon />
+														</IconButton>
+													)}
 												</ButtonGroup>
 											</StyledText>
 											{item.content}{" "}

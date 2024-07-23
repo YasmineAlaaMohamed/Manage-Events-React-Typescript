@@ -5,11 +5,8 @@ import { EventContext } from "../EventProvider";
 import Autocomplete from "@material-ui/lab/Autocomplete";
 import { TagService } from "../../../services/TagService";
 import CircularProgress from "@material-ui/core/CircularProgress";
-import {
-	MuiPickersUtilsProvider,
-	KeyboardTimePicker,
-	KeyboardDatePicker,
-} from "@material-ui/pickers";
+import styled from "styled-components";
+import moment from "moment";
 import {
 	Dialog,
 	DialogActions,
@@ -24,6 +21,12 @@ interface Tag {
 	label: string;
 }
 
+const StyledTextDate = styled(TextField)`
+	&& {
+		margin-right: 20px;
+	}
+`;
+
 export const AddUpdateForm = ({
 	validationErrors,
 	updateFormData,
@@ -31,6 +34,7 @@ export const AddUpdateForm = ({
 	formData,
 	setSelectedTags,
 	loading,
+	selectedTags,
 }) => {
 	const { setShowAddModal, submitAddUpdateForm } = useContext(EventContext);
 	const [tags, setTags] = useState([]);
@@ -44,9 +48,12 @@ export const AddUpdateForm = ({
 		setSelectedTags(newTags);
 	};
 
+	const isAdd = formData.id == "" ? true : false;
 	return (
 		<Dialog open={true} onClose={() => {}} aria-labelledby='form-dialog-title'>
-			<DialogTitle id='form-dialog-title'>Add Event</DialogTitle>
+			<DialogTitle id='form-dialog-title'>
+				{isAdd ? "Add Event" : "Update Event"}
+			</DialogTitle>
 			<DialogContent>
 				{loading ? (
 					<CircularProgress />
@@ -90,7 +97,7 @@ export const AddUpdateForm = ({
 							helperText={validationErrors.location}
 							onChange={(e) => updateFormData("location", e.target.value)}
 						/>
-						<TextField
+						<StyledTextDate
 							required
 							id='date'
 							type='date'
@@ -101,6 +108,7 @@ export const AddUpdateForm = ({
 							InputLabelProps={{
 								shrink: true,
 							}}
+							inputProps={{ min: moment().format("YYYY-MM-DD") }}
 							onChange={(e) => updateFormData("date", e.target.value)}
 						/>
 
@@ -140,6 +148,7 @@ export const AddUpdateForm = ({
 								tags.length > 0 ? tags?.map((option) => option.name) : []
 							}
 							freeSolo
+							value={selectedTags}
 							onChange={handleTagChange}
 							renderTags={(value, getTagProps) =>
 								value?.map((option, index) => (
@@ -171,7 +180,7 @@ export const AddUpdateForm = ({
 					color='primary'
 					disabled={isDisabled}
 					variant='contained'>
-					Save
+					{isAdd ? "Save" : "Update"}
 				</Button>
 			</DialogActions>
 		</Dialog>
